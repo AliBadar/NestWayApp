@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "120706127448",
+    "project_id": "nest-away-fef39",
+    "storage_bucket": "nest-away-fef39.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:120706127448:android:278f7ec3ea8260ae86dc2d",
+        "android_client_info": {
+          "package_name": "com.example.hackatonprjoect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRQLwCu5kXb59YDUfbHlBTQCj9pK-WmIk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
