@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hackatonprjoect.R
+import com.example.hackatonprjoect.common.utils.AppObserver
 import com.example.hackatonprjoect.ui.theme.Background
 import com.example.hackatonprjoect.ui.theme.ThemeGreenColor
 import com.example.hackatonprjoect.ui.theme.WhiteColor
@@ -42,6 +43,7 @@ import ir.kaaveh.sdpcompose.ssp
 
 @Composable
 fun MainScreen(
+    appObserver: AppObserver,
     modifier: Modifier = Modifier,
     onEnterPlayZoneClick: () -> Unit
 ) {
@@ -171,7 +173,7 @@ fun MainScreen(
 )
 @Composable
 fun GreetingPreview() {
-    MainScreen() {
+    MainScreen(AppObserver()) {
 
     }
 }

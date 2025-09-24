@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -53,11 +54,15 @@ import com.example.hackatonprjoect.NavigationRoutes.HOME
 import com.example.hackatonprjoect.common.model.fids.FidsEntity
 import com.example.hackatonprjoect.common.utils.AppObserver
 import com.example.hackatonprjoect.common.utils.AppPreference
+import com.example.hackatonprjoect.common.utils.Constants.docIDHuwaei
+import com.example.hackatonprjoect.common.utils.Constants.docIDSamsung
+import com.example.hackatonprjoect.common.utils.Utility
 import com.example.hackatonprjoect.common.utils.Utility.parseBP
 import com.example.hackatonprjoect.core.fcm.CombinedPermissionsHandler
 import com.example.hackatonprjoect.data.repositories.NotificationRepository
 import com.example.hackatonprjoect.presentation.flight_details.FlightDetailScreen
 import com.example.hackatonprjoect.presentation.flight_details.FlightDetailsCard
+import com.example.hackatonprjoect.presentation.home.HomeViewModel
 import com.example.hackatonprjoect.presentation.main.MainScreen
 import com.example.hackatonprjoect.presentation.main.MainViewModel
 import com.example.hackatonprjoect.presentation.main.NotificationViewModel
@@ -74,6 +79,7 @@ import kotlin.getValue
 class MainActivity : ComponentActivity() {
 
     val mainViewModel: MainViewModel by viewModels()
+    val homeViewModel: HomeViewModel by viewModels()
 
     @Inject
     lateinit var appObservers: AppObserver
@@ -103,6 +109,9 @@ class MainActivity : ComponentActivity() {
             val calculatedLocation =
                 appObservers.refreshFidsEntity.collectAsState(initial = FidsEntity()).value
 
+            val totalPoints =
+                appObservers.refreshFidsEntity.collectAsState(initial = 5000).value
+
             var showLoader by rememberSaveable { mutableStateOf(false) }
 
             val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -120,6 +129,10 @@ class MainActivity : ComponentActivity() {
                 if (fidsEntity.uid.isNotEmpty()) {
                     openBottomSheet = true
                 }
+            }
+
+            LaunchedEffect(Unit) {
+                appObservers.updateTotalPoints(5000)
             }
 
             var permissionsGranted by rememberSaveable { mutableStateOf(false) }
@@ -166,30 +179,47 @@ class MainActivity : ComponentActivity() {
                             IntentIntegrator.parseActivityResult(result.resultCode, result.data)
                         scanResult?.contents?.let { barcode ->
                             try {
-                                val fidsReqVo = parseBP(barcode, context)
-                                if (fidsReqVo != null) {
-                                    mainViewModel.getFlightDetailsByFlightNo(fidsReqVo) { fids ->
-                                        if (fids != null) {
-                                            lifecycleScope.launch {
-                                                appObservers.updateFidsEntity(fids)
-                                            }
-                                            fidsEntity = fids
-                                            openBottomSheet = true
-                                        } else {
-                                            errorMessage =
-                                                context.getString(R.string.please_scan_boarding_pass)
-                                            showDialog = true
-                                        }
-                                        showLoader = false
-                                    }
-                                } else {
-                                    showLoader = false
-                                    //shouldCloseScreen = true
 
-                                    errorMessage =
-                                        context.getString(R.string.please_scan_boarding_pass)
-                                    showDialog = true
+                                mainViewModel.createUser(this@MainActivity ,Utility.getDeviceId(this@MainActivity)) {
+                                    lifecycleScope.launch {
+                                        if (Build.BRAND.lowercase().contains("samsung")) {
+                                            AppPreference.saveUser(this@MainActivity, docIDSamsung)
+                                        }else {
+                                            AppPreference.saveUser(this@MainActivity, docIDHuwaei)
+                                        }
+
+                                        navController.navigate(HOME)
+                                    }
+
                                 }
+
+//                                val fidsReqVo = parseBP(barcode, context)
+//                                if (fidsReqVo != null) {
+//
+//
+//
+//                                    mainViewModel.getFlightDetailsByFlightNo(fidsReqVo) { fids ->
+//                                        if (fids != null) {
+//                                            lifecycleScope.launch {
+//                                                appObservers.updateFidsEntity(fids)
+//                                            }
+//                                            fidsEntity = fids
+//                                            openBottomSheet = true
+//                                        } else {
+//                                            errorMessage =
+//                                                context.getString(R.string.please_scan_boarding_pass)
+//                                            showDialog = true
+//                                        }
+//                                        showLoader = false
+//                                    }
+//                                } else {
+//                                    showLoader = false
+//                                    //shouldCloseScreen = true
+//
+//                                    errorMessage =
+//                                        context.getString(R.string.please_scan_boarding_pass)
+//                                    showDialog = true
+//                                }
                             } catch (e: Exception) {
                                 showLoader = false
                                 errorMessage = context.getString(R.string.please_scan_boarding_pass)
@@ -242,10 +272,23 @@ class MainActivity : ComponentActivity() {
 //                            cameraPermissionState.launch(Manifest.permission.CAMERA)
 //                        }
 
-                        Navigation(navController, innerPadding) {
+                        Navigation(navController, appObservers, homeViewModel, innerPadding) {
 
-                            navController.navigate(HOME)
-                            openBottomSheet = false
+//                            navController.navigate(HOME)
+//                            openBottomSheet = false
+
+                            mainViewModel.createUser(this@MainActivity ,Utility.getDeviceId(this@MainActivity)) {
+                                lifecycleScope.launch {
+                                    if (Build.BRAND.lowercase().contains("samsung")) {
+                                        AppPreference.saveUser(this@MainActivity, docIDSamsung)
+                                    }else {
+                                        AppPreference.saveUser(this@MainActivity, docIDHuwaei)
+                                    }
+
+                                    navController.navigate(HOME)
+                                }
+
+                            }
 
 //                            scanRequestedState = true
 //                            cameraPermissionState.launch(Manifest.permission.CAMERA)

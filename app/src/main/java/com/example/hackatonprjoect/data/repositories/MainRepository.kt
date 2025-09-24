@@ -1,9 +1,20 @@
 package com.example.hackatonprjoect.data.repositories
 
+import android.util.Log
+import androidx.annotation.WorkerThread
 import com.example.hackatonprjoect.common.model.fids.FidsEntity
 import com.example.hackatonprjoect.common.model.fids.FidsReqVO
 import com.example.hackatonprjoect.common.model.fids.Flights
+import com.example.hackatonprjoect.common.utils.Constants.baseLocationURL
 import com.example.hackatonprjoect.core.network.ApiService
+import com.visioglobe.visiomoveessential.models.VMEPosition
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 import javax.inject.Inject
 
 class MainRepository @Inject constructor(
@@ -17,6 +28,197 @@ class MainRepository @Inject constructor(
             return flightData.flights?.first()?.let { parseFlightsData(it) }
         } else {
             return null
+        }
+    }
+
+    suspend fun createUser(deviceID: String, fcmToken: String): Flow<String> {
+
+        return flow {
+            val url = URL(baseLocationURL)
+            var urlConnection: HttpURLConnection? = null
+            try {
+                urlConnection = url.openConnection() as HttpURLConnection
+                urlConnection.requestMethod = "POST"
+                urlConnection.doOutput = true // Enable sending data
+                urlConnection.doInput = true // Enable receiving data
+                urlConnection.setRequestProperty("Content-Type", "application/json")
+    //            urlConnectio\n.connect() // Establish the connection
+
+
+                val postData = "{" +
+                        "  \"data\": {" +
+                        "    \"name\": \"FAMILY\"," +
+                        "    \"deviceId\": \"" + deviceID+"\","+
+                        "    \"tokenId\": \"" + fcmToken +"\", "+
+                        "    \"channelId\": \"4\"," +
+                        "    \"lat\": \"" + "0" + "\","+
+                        "    \"lon\": \"" + "0" + "\","+
+                        "    \"floor\": \"" + "1" + "\""+
+                        "  }" +
+                        "}"
+
+                Log.i("MainACtivity update", postData.toString())
+                val postDataBytes = postData.toByteArray(Charsets.UTF_8)
+                urlConnection.setRequestProperty("Content-Length", postDataBytes.size.toString())
+
+                val outputStream = urlConnection.outputStream
+                outputStream.write(postDataBytes)
+                outputStream.flush()
+                outputStream.close()
+
+                val responseCode = urlConnection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                    val reader = BufferedReader(InputStreamReader(urlConnection.inputStream))
+                    val response = StringBuilder()
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        response.append(line)
+                    }
+                    reader.close()
+
+                    print("hisham"+response.toString());
+
+                    Log.i("MainACtivity update", response.toString())
+
+                    response.toString()
+
+                    val json = JSONObject( response.toString())
+
+                    val data = json.get("data") as JSONObject
+
+                    val docID = data.getString("documentId")
+                    Log.i("MainACtivity update",   "doc--------"+data.getString("documentId"))
+
+    //                json.getString()
+
+
+
+                    emit(response.toString())
+                } else {
+                    Log.i("MainACtivity update", "Error: HTTP Response Code $responseCode")
+
+                    emit("Error: HTTP Response Code $responseCode")
+
+                }
+            } catch (e: Exception) {
+                emit("Error: ${e.toString()}")
+            } finally {
+                urlConnection?.disconnect() // Close the connection to release resources
+            }
+
+        }
+    }
+
+
+    fun getOtherDeviceLocation(docID: String): Flow<String> {
+
+        return flow {
+            val urlStr = baseLocationURL +"/"+docID
+            Log.e("--------","urlStr: $urlStr")
+            val url = URL(urlStr)
+            var urlConnection: HttpURLConnection? = null
+            try {
+                urlConnection = url.openConnection() as HttpURLConnection
+                urlConnection.requestMethod = "GET" // Set the request method to GET
+
+                urlConnection.setRequestProperty("Content-Type","application/json");
+                urlConnection.connect() // Establish the connection
+
+                val responseCode = urlConnection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val reader = BufferedReader(InputStreamReader(urlConnection.inputStream))
+                    val response = StringBuilder()
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        response.append(line)
+                    }
+                    reader.close()
+
+                    print("hisham"+response.toString());
+
+                    Log.e("--------","response: ${response.toString()}")
+
+                    Log.i("MainACtivity", response.toString())
+
+                    emit(response.toString())
+                } else {
+                    Log.e("--------","Error: HTTP Response Code: ${responseCode}")
+                    emit("Error: HTTP Response Code $responseCode")
+                }
+            } catch (e: Exception) {
+                Log.e("--------","Error: ${e.toString()}")
+                emit("Error: ${e.toString()}")
+            } finally {
+                urlConnection?.disconnect() // Close the connection to release resources
+            }
+        }
+    }
+
+    @WorkerThread
+    suspend fun updateCurrentLocation(pos: VMEPosition?, docID: String): String {
+
+
+        val urlStr = baseLocationURL +"/"+docID
+        Log.e("--------","urlStr: $urlStr")
+        val url = URL(urlStr)
+        var urlConnection: HttpURLConnection? = null
+        try {
+            urlConnection = url.openConnection() as HttpURLConnection
+            urlConnection.requestMethod = "PUT"
+            urlConnection.doOutput = true // Enable sending data
+            urlConnection.doInput = true // Enable receiving data
+            urlConnection.setRequestProperty("Content-Type", "application/json")
+//            urlConnection.connect() // Establish the connection
+
+
+            val postData = "{" +
+                    "  \"data\": {" +
+
+                    "    \"lat\": \"" + pos?.latitude.toString() + "\","+
+                    "    \"lon\": \"" + pos?.longitude.toString() + "\","+
+                    "    \"floor\": \"" + pos?.scene!!.floorID + "\""+
+                    "  }" +
+                    "}"
+
+
+            Log.e("--------","postData: $postData")
+            val postDataBytes = postData.toByteArray(Charsets.UTF_8)
+            urlConnection.setRequestProperty("Content-Length", postDataBytes.size.toString())
+
+            val outputStream = urlConnection.outputStream
+            outputStream.write(postDataBytes)
+            outputStream.flush()
+            outputStream.close()
+
+            val responseCode = urlConnection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                val reader = BufferedReader(InputStreamReader(urlConnection.inputStream))
+                val response = StringBuilder()
+                var line: String?
+                while (reader.readLine().also { line = it } != null) {
+                    response.append(line)
+                }
+                reader.close()
+
+
+                print("hisham"+response.toString());
+
+                Log.i("MainACtivity update", response.toString())
+
+                Log.e("--------","response: $response.toString()")
+                return response.toString()
+            } else {
+                Log.e("--------","response: Error: HTTP Response Code $responseCode")
+                Log.i("MainACtivity update", "Error: HTTP Response Code $responseCode")
+
+                return "Error: HTTP Response Code $responseCode"
+
+            }
+        } catch (e: Exception) {
+            Log.e("--------","response: Error: catch ${e.toString()}")
+            return "Error: ${e.toString()}"
+        } finally {
+            urlConnection?.disconnect() // Close the connection to release resources
         }
     }
 

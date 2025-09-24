@@ -1,5 +1,6 @@
 package com.example.hackatonprjoect.presentation.map
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.util.Log
@@ -8,7 +9,9 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hackatonprjoect.R
+import com.example.hackatonprjoect.common.utils.AppPreference
 import com.example.hackatonprjoect.core.fomatters.JsonTransformerClass
+import com.example.hackatonprjoect.data.repositories.MainRepository
 import com.example.hackatonprjoect.presentation.treauser_hunt.ArtPiece
 import com.example.hackatonprjoect.visioglobe.ui.model.Building
 import com.example.hackatonprjoect.visioglobe.ui.model.Category
@@ -18,6 +21,7 @@ import com.example.hackatonprjoect.visioglobe.ui.model.PlaceInfo
 import com.example.hackatonprjoect.visioglobe.ui.model.PlaceType
 import com.example.hackatonprjoect.visioglobe.ui.model.Poi
 import com.example.hackatonprjoect.visioglobe.ui.model.SelectorData
+import com.google.gson.JsonObject
 import com.visioglobe.visiomoveessential.VMEMapController
 import com.visioglobe.visiomoveessential.VMEMapControllerBuilder
 import com.visioglobe.visiomoveessential.VMEMapView
@@ -38,19 +42,30 @@ import com.visioglobe.visiomoveessential.models.VMECameraPitch
 import com.visioglobe.visiomoveessential.models.VMECameraUpdateBuilder
 import com.visioglobe.visiomoveessential.models.VMECategory
 import com.visioglobe.visiomoveessential.models.VMEInstruction
+import com.visioglobe.visiomoveessential.models.VMELocation
 import com.visioglobe.visiomoveessential.models.VMEPosition
 import com.visioglobe.visiomoveessential.models.VMERouteRequest
 import com.visioglobe.visiomoveessential.models.VMERouteResult
 import com.visioglobe.visiomoveessential.models.VMESceneContext
 import com.visioglobe.visiomoveessential.models.VMEVenueInfo
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import javax.inject.Inject
 
 
-class MapViewModel : ViewModel() {
+@HiltViewModel
+class MapViewModel @Inject constructor(
+    private val mainRepository: MainRepository
+) : ViewModel() {
 
     var mContext: Context? = null
+    var isLiveTraking : Boolean = false
     private var mMapController: VMEMapController? = null
 
     private val _poiList = MutableStateFlow<List<Poi>>(emptyList())
@@ -82,6 +97,10 @@ class MapViewModel : ViewModel() {
 
     private val buildingList: HashMap<String, String> = HashMap()
     private val floorList: HashMap<String, String> = HashMap()
+
+
+
+
 
     override fun onCleared() {
         mMapController?.unloadMapView()
@@ -246,7 +265,42 @@ class MapViewModel : ViewModel() {
         }
 
         override fun mapDidReceiveTapGesture(position: VMEPosition?) {
+            position?.let {
+                if(!isLiveTraking){
+                    updateLocation(position)
+                }
+            }
 
+
+
+        }
+    }
+
+    fun updateLocation(pos: VMEPosition) {
+        viewModelScope.launch(Dispatchers.IO) {
+            mainRepository.updateCurrentLocation(pos, AppPreference.getUser(mContext!!).first())
+        }
+    }
+
+    fun getOtherDeviceLocation(docID: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            mainRepository.getOtherDeviceLocation(docID).collect {response ->
+                if (response.isNotEmpty()) {
+                    val json = JSONObject(response)
+                    if (json != null) {
+                        val data = json.getJSONObject("data")
+                        if (data != null) {
+                            val lat = data.getString("lat")
+                            val lon = data.getString("lon")
+
+                            withContext(Dispatchers.Main) {
+                                setLocationOnMap(lat, lon, "1")
+                            }
+
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -341,7 +395,8 @@ class MapViewModel : ViewModel() {
         }
         val builder = VMEMapControllerBuilder()
 //        builder.mapHash = "mb59995ef2012ff00e4e1ca8e93ebb0955685b269"
-        builder.mapHash = "mcd6c02932a027a03006e98721b9865085ed603a6"
+//        builder.mapHash = "mcd6c02932a027a03006e98721b9865085ed603a6"
+        builder.mapPath = "asset://Data.move.zip"
         mContext = context
         mMapController = VMEMapController(context, builder)
 
@@ -411,6 +466,44 @@ class MapViewModel : ViewModel() {
 
     fun nextInstruction() {
         mMapController?.setNavigationIndex(currentInstructionIndex + 1)
+    }
+
+    @SuppressLint("DefaultLocale")
+    private fun setLocationOnMap(lat: String, lon: String, floor: String) {
+
+        try {
+
+            val lSceneContext = VMESceneContext("B0", floor)
+
+//            val latitude = String.format("%.7f", lat).toDouble()
+//            val longitude = String.format("%.7f", lon).toDouble()
+
+            val lCurrentPosition = VMEPosition(
+                lat.toDouble(), lon.toDouble(), 0.0, lSceneContext
+            )
+            val lCurrentLocation = VMELocation(
+                lCurrentPosition, 0.0, 10.0
+            )
+
+            val lUpdate = VMECameraUpdateBuilder()
+                .setTargets(listOf(lCurrentPosition))
+                .setViewMode(VMEViewMode.FLOOR)
+                .setPaddingTop(10)
+                .setPitch(VMECameraPitch.newPitch(-30.0))
+                .build()
+            val lAnimationCallback = object : VMEAnimationCallback {
+                override fun didFinish() {
+
+                }
+            }
+            mMapController!!.animateCamera(lUpdate, 0.7f, lAnimationCallback)
+
+            mMapController!!.updateLocation(lCurrentLocation)
+
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
+
     }
 
     fun goToPoi(id: String) {

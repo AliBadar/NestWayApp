@@ -7,7 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.hackatonprjoect.common.utils.AppObserver
 import com.example.hackatonprjoect.presentation.home.HomeScreen
+import com.example.hackatonprjoect.presentation.home.HomeViewModel
 import com.example.hackatonprjoect.presentation.main.MainScreen
 import com.example.hackatonprjoect.presentation.treauser_hunt.FindArtPlaces
 
@@ -27,6 +29,8 @@ object NavigationRoutes {
 @Composable
 fun Navigation(
     navController: NavHostController,
+    appObserver: AppObserver,
+    homeViewModel: HomeViewModel,
     paddingValues: PaddingValues,
     onEnterPlayZoneClick: () -> Unit
 ) {
@@ -40,18 +44,18 @@ fun Navigation(
     ) {
 
         composable(NavigationRoutes.MAIN) {
-            MainScreen {
+            MainScreen(appObserver) {
                 onEnterPlayZoneClick()
             }
         }
 
         composable(NavigationRoutes.HOME) {
-            HomeScreen(navController)
+            HomeScreen(navController, homeViewModel)
         }
 
 
         composable(NavigationRoutes.FIND_ART_PIECES) {
-            FindArtPlaces()
+            FindArtPlaces(appObserver)
         }
     }
 }

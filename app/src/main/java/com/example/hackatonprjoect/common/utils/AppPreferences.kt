@@ -1,6 +1,7 @@
 package com.example.hackatonprjoect.common.utils
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -13,6 +14,7 @@ private val Context.dataStore by preferencesDataStore(name = "settings")
 object AppPreference {
     private val LANGUAGE_KEY = stringPreferencesKey("app_language")
     private val APP_USER = stringPreferencesKey("app_user")
+    private val USER_POINTS = stringPreferencesKey("user_points")
 
     fun getLanguage(context: Context): Flow<String> {
         return context.dataStore.data.map { preferences ->
@@ -30,7 +32,20 @@ object AppPreference {
         }
     }
 
+    suspend fun saveUserPoints(context: Context, language: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_POINTS] = language
+        }
+    }
+
+    fun getUserPoints(context: Context): Flow<String> {
+        return context.dataStore.data.map { preferences ->
+            preferences[USER_POINTS] ?: "5000"
+        }
+    }
+
     suspend fun saveUser(context: Context, user: String) {
+        Log.e("--------","user: $user")
         context.dataStore.edit { preferences ->
             preferences[APP_USER] = user
         }
@@ -38,7 +53,7 @@ object AppPreference {
 
     fun getUser(context: Context): Flow<String> {
         return context.dataStore.data.map { preferences ->
-            preferences[APP_USER] ?: getLocalLang()
+            preferences[APP_USER] ?: ""
         }
     }
 }

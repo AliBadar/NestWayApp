@@ -28,9 +28,18 @@ class AppObserver @Inject constructor() {
     private val _refreshHome = MutableSharedFlow<Boolean>(replay = 1)
     val refreshHome: SharedFlow<Boolean> = _refreshHome
 
+    private val _totalPoints = MutableSharedFlow<Int>(replay = 1)
+    val totalPoints: SharedFlow<Int> = _totalPoints
+
+
+
 //    suspend fun updateLocation(aLocation: CalculatedLocation?) {
 //        _aLocation.emit(aLocation)
 //    }
+
+    suspend fun updateTotalPoints(updatePoints: Int) {
+        _totalPoints.emit(updatePoints)
+    }
 
     suspend fun updateSearch(updateSearch: Boolean = true) {
         _searchRefresh.emit(updateSearch)

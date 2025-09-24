@@ -1,9 +1,7 @@
 package com.example.hackatonprjoect.presentation.home
 
 import android.content.Intent
-import android.net.Uri
 import androidx.annotation.DrawableRes
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -21,44 +19,75 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.hackatonprjoect.MapActivity
 import com.example.hackatonprjoect.NavigationRoutes
 import com.example.hackatonprjoect.R
+import com.example.hackatonprjoect.WebViewActivity
 import com.example.hackatonprjoect.common.model.fids.FidsEntity
 import com.example.hackatonprjoect.common.ui.BottomBarFlightData
 import com.example.hackatonprjoect.common.ui.TopBar
+import com.example.hackatonprjoect.common.utils.Constants.INFODESK
+import com.example.hackatonprjoect.common.utils.Constants.LIVETRACKING
+import com.example.hackatonprjoect.presentation.treauser_hunt.artpiece
 import com.example.hackatonprjoect.ui.theme.Background
 import com.example.hackatonprjoect.ui.theme.ThemeGreenColor
 import com.example.hackatonprjoect.ui.theme.Typography
 import com.example.hackatonprjoect.ui.theme.YellowColorDark
-import com.example.hackatonprjoect.WebViewActivity
 import ir.kaaveh.sdpcompose.sdp
 import ir.kaaveh.sdpcompose.ssp
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) {
+fun HomeScreen(navController: NavHostController,
+               homeViewModel: HomeViewModel,
+               modifier: Modifier = Modifier
+) {
+
 
     val context = LocalContext.current
+
+    val totalPointsData = homeViewModel.totalPoints.collectAsStateWithLifecycle(initialValue = 5000).value
+
+
+    var totalPoints by rememberSaveable {
+        mutableIntStateOf(5000)
+    }
+
+    LaunchedEffect(totalPointsData) {
+        totalPoints = totalPointsData
+    }
+
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        homeViewModel.getTotalPoints()
+    }
+
 
     Scaffold(
         topBar = {
@@ -124,7 +153,7 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                             Spacer(modifier.width(4.sdp))
 
                             Text(
-                                "5000 pts", color = Color.White,
+                                "$totalPoints pts", color = Color.White,
                                 style = Typography.bodyLarge.copy(
                                     fontSize = 35.ssp,
                                     fontWeight = FontWeight.Bold
@@ -176,7 +205,10 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                     R.drawable.ic_live_tracking, "Live\n" +
                             "Tracking"
                 ) {
-
+                    val intent = Intent(context, MapActivity::class.java).apply {
+                        putExtra("type", LIVETRACKING)
+                    }
+                    context.startActivity(intent)
                 }
 
                 Spacer(modifier.weight(1f))
@@ -220,20 +252,44 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                     .background(YellowColorDark, RoundedCornerShape(12.sdp)),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ItemInformationDesk(R.drawable.ic_main_logo, "Airport Information Desk") {
+                ItemInformationDesk(R.drawable.ic_main_logo, "Muzn Lounge") {
+                    val intent = Intent(context, MapActivity::class.java).apply {
+                        putExtra("type", INFODESK)
+                        putExtra("visioID", "B01-UL001-IDA0352")
+                    }
+                    context.startActivity(intent)
+                }
 
+                ItemInformationDesk(R.drawable.ic_main_logo, "Airport Information Desk") {
+                    val intent = Intent(context, MapActivity::class.java).apply {
+                        putExtra("type", INFODESK)
+                        putExtra("visioID", "B01-UL001-IDA0352")
+                    }
+                    context.startActivity(intent)
                 }
 
                 ItemInformationDesk(R.drawable.ic_main_logo, "Qatar Airways Desk") {
-
+                    val intent = Intent(context, MapActivity::class.java).apply {
+                        putExtra("type", INFODESK)
+                        putExtra("visioID", "B01-UL001-IDA0352")
+                    }
+                    context.startActivity(intent)
                 }
 
                 ItemInformationDesk(R.drawable.ic_main_logo, "QAS Information Desk") {
-
+                    val intent = Intent(context, MapActivity::class.java).apply {
+                        putExtra("type", INFODESK)
+                        putExtra("visioID", "B01-UL001-IDA0352")
+                    }
+                    context.startActivity(intent)
                 }
 
                 ItemInformationDesk(R.drawable.ic_main_logo, "Discover Qatar for Transit Visa") {
-
+                    val intent = Intent(context, MapActivity::class.java).apply {
+                        putExtra("type", INFODESK)
+                        putExtra("visioID", "B01-UL001-IDA0352")
+                    }
+                    context.startActivity(intent)
                 }
             }
 
@@ -247,7 +303,8 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
 fun ItemInformationDesk(@DrawableRes drawable: Int, title: String, modifier: Modifier = Modifier, onItemClick: () -> Unit) {
     Row(modifier
         .fillMaxWidth()
-        .padding(8.sdp),
+        .padding(8.sdp)
+        .clickable { onItemClick() },
         verticalAlignment = Alignment.CenterVertically) {
 
         Icon(painter = painterResource(drawable), contentDescription = null, modifier = modifier.size(20.sdp))
@@ -313,5 +370,5 @@ fun TrackingEventsCard(@DrawableRes drawable: Int, title: String, modifier: Modi
 )
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(rememberNavController())
+    HomeScreen(rememberNavController(), hiltViewModel())
 }

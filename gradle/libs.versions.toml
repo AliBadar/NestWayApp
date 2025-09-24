@@ -31,6 +31,8 @@ roomRuntimeVersion = "2.6.1"
 googleGmsGoogleServices = "4.4.2"
 firebaseMessaging = "24.1.1"
 browser = "1.9.0"
+runtimeLivedata = "1.9.1"
+livedata = "1.4.1"
 
 
 
@@ -81,6 +83,10 @@ androidx-room-runtime-v250 = { module = "androidx.room:room-runtime", version.re
 androidx-room-runtime-v261 = { module = "androidx.room:room-runtime", version.ref = "roomRuntimeVersion" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "livedata" }
+
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

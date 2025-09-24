@@ -1,6 +1,10 @@
 package com.example.hackatonprjoect.common.utils
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.provider.Settings
+import androidx.fragment.app.FragmentActivity
 import com.example.hackatonprjoect.common.model.fids.FidsReqVO
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -77,4 +81,13 @@ object Utility {
         return fidsReqVO
     }
 
+
+    @SuppressLint("HardwareIds")
+    fun getDeviceId(context: Activity?): String {
+        if (context != null) {
+            return Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        }
+
+        return "Default"
+    }
 }

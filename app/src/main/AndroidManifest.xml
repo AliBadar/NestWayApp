@@ -33,6 +33,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:usesCleartextTraffic="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.HackatonPrjoect">
@@ -45,9 +46,9 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-                <data
-                    android:scheme="myapp"
-                    android:host="callback" />
+<!--                <data-->
+<!--                    android:scheme="myapp"-->
+<!--                    android:host="callback" />-->
             </intent-filter>
         </activity>
         <activity android:name=".WebViewActivity" />

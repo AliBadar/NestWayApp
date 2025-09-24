@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.browser)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -130,6 +131,9 @@ dependencies {
 
     implementation("org.altbeacon:android-beacon-library:2.21.1")
     implementation("com.davidgyoungtech:beacon-parsers:1.0")
+    implementation("nl.dionsegijn:konfetti-compose:2.0.5")
+
+    implementation(libs.androidx.lifecycle.livedata.ktx)
 
 
 }

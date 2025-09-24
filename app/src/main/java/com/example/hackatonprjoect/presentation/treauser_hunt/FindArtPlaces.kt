@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +38,7 @@ import com.example.hackatonprjoect.common.model.fids.FidsEntity
 import com.example.hackatonprjoect.common.ui.BottomBarFlightData
 import com.example.hackatonprjoect.common.ui.CommonButton
 import com.example.hackatonprjoect.common.ui.TopBar
+import com.example.hackatonprjoect.common.utils.AppObserver
 import com.example.hackatonprjoect.ui.theme.Background
 import com.example.hackatonprjoect.ui.theme.ThemeGreenColor
 import com.example.hackatonprjoect.ui.theme.ThemeLightGreenColor
@@ -70,8 +72,11 @@ data class ArtPiece(
 ) : Serializable
 
 @Composable
-fun FindArtPlaces(modifier: Modifier = Modifier) {
+fun FindArtPlaces(
+    appObserver: AppObserver, modifier: Modifier = Modifier) {
 
+    val totalPoints =
+        appObserver.refreshFidsEntity.collectAsState(appObserver.totalPoints).value
 
     val context = LocalContext.current
 
@@ -246,5 +251,5 @@ fun ItemDirectionArtPiece(menuModel: ArtPiece, modifier: Modifier = Modifier, on
 )
 @Composable
 fun FindArtPlacesPreview() {
-    FindArtPlaces()
+    FindArtPlaces(AppObserver())
 }
